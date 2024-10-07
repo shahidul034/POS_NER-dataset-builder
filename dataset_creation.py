@@ -1,4 +1,6 @@
 import pandas as pd
+import nltk
+nltk.download('punkt_tab')
 def dataset_gen():
     from datasets import load_from_disk
     dataset = load_from_disk("data")
@@ -59,7 +61,14 @@ def already_completed_show(id):
 
 
 def display_table(front):
-    temp=pd.read_excel("data.xlsx")
+    file_path="data.xlsx"
+    if os.path.exists(file_path):
+        temp = pd.read_excel(file_path)
+        print("File exists and has been loaded.")
+    else:
+        temp = pd.DataFrame(columns=['id', 'tokens', 'pos_tag', 'ner_tag'])
+        temp.to_excel(file_path, index=False)
+        
     if temp.isin([int(front)]).any().any()==True:
         gr.Warning("An answer already exists! If you submit another one, it will replace the previous answer.")
     
@@ -121,6 +130,14 @@ def show_tok(tran_text):
     import nltk
     # nltk.download('punkt')
     tokens = nltk.word_tokenize(tran_text)
+    if tokens[len(tokens)-1]!="।":
+        temp=tokens[len(tokens)-1]
+        if temp[len(temp)-1]=="।":
+            t1,t2=temp[:len(temp)-1],temp[len(temp)-1]
+            tokens[len(tokens)-1]=t1
+            tokens.append(t2)
+        else:
+            tokens.append("।")
     return {
                 tok_text: gr.Label(value=f"{tokens}")
         }
