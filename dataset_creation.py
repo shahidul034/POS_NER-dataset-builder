@@ -16,7 +16,8 @@ def already_completed_show(id):
     
     # Find the row(s) where the id matches
     row = temp[temp.isin([int(id)]).any(axis=1)]
-    
+    if len(row)==0:
+        gr.Warning("Previous answer is not exist!!!")
     # Initialize a list to hold the outputs for each row
     output_elements = []
     
@@ -57,10 +58,18 @@ def already_completed_show(id):
         output_elements.append(gr.Label(value=id, visible=True, label="Question No."))
     
     return output_elements
-
+def display_text(id):
+    translated_dataset = pd.read_excel("translated_dataset.xlsx")
+    selected_row = translated_dataset[translated_dataset["id"] == id].iloc[0]  # Select the row where the id matches
+    english_text = selected_row["English"]
+    bangla1 = selected_row["Bangla1"]
+    bangla2 = selected_row["Bangla2"]
+    options = [bangla1, bangla2]
+    return english_text, options
 
 
 def display_table(front):
+    # translated_dataset = pd.read_excel("translated_dataset.xlsx")
     file_path="data.xlsx"
     if os.path.exists(file_path):
         temp = pd.read_excel(file_path)
@@ -68,7 +77,7 @@ def display_table(front):
     else:
         temp = pd.DataFrame(columns=['id', 'tokens', 'pos_tag', 'ner_tag'])
         temp.to_excel(file_path, index=False)
-        
+
     if temp.isin([int(front)]).any().any()==True:
         gr.Warning("An answer already exists! If you submit another one, it will replace the previous answer.")
     
@@ -80,10 +89,18 @@ def display_table(front):
     
     # Convert DataFrame with custom index to HTML table
     html_table = df_with_custom_index.to_html(index=True)
-    
-    # Wrapping HTML table with Gradio Text
-    # return f"<div style='overflow-x:auto;'>{html_table}</div>"
-    return [gr.HTML(value=f"<div style='overflow-x:auto;'>{html_table}</div>", visible=True),gr.Label(value=text,visible=True,label="Sentence"),gr.Label(value=front,visible=True,label="Question No.")]
+    # result=translated_dataset.loc[translated_dataset['id'] == front, 'Bangla']
+    eng_text, options=display_text(front)
+    # if result.empty:
+    #     result=""
+    # else:
+    #     result=result.values[0]
+    return [gr.HTML(value=f"<div style='overflow-x:auto;'>{html_table}</div>", visible=True),
+    gr.Label(value=text,visible=True,label="Sentence"),
+    gr.Label(value=front,visible=True,label="Question No."), 
+    gr.Radio(choices=options,label="Select Translation", visible=True,interactive=True)
+    # gr.Textbox(label="Enter translated text",info="sample of input: মিয়া বাপ্পি একদল বাঙালি কিশোরকে দেখিয়ে বলেন ।",value=result)
+               ]
 
 import os
 import pandas as pd
@@ -199,6 +216,7 @@ with gr.Blocks(css=css) as demo:
         with gr.Column():
             num_text=gr.Label(visible=False)
             show_text2 = gr.Label(visible=False)
+            translation_options = gr.Radio(visible=False)
     with gr.Row():
         tran_text=gr.Textbox(label="Enter translated text",info="sample of input: মিয়া বাপ্পি একদল বাঙালি কিশোরকে দেখিয়ে বলেন ।")
     with gr.Row():
@@ -214,7 +232,11 @@ with gr.Blocks(css=css) as demo:
         save = gr.Button("Save the data")
     with gr.Row():
         lab=gr.Label(visible=False)
-    btn_ques.click(display_table,ques,[show_text1,show_text2,num_text])
+    btn_ques.click(display_table,ques,[show_text1,show_text2,num_text,translation_options])
+    def translation_change(translation_options):
+        return gr.Textbox(label="Enter translated text",info="sample of input: মিয়া বাপ্পি একদল বাঙালি কিশোরকে দেখিয়ে বলেন ।",value=translation_options)
+
+    translation_options.change(translation_change,translation_options, tran_text)
     show_btn.click(already_completed_show,[ques],[show_text1,show_text2,num_text])
     tran_text.change(show_tok,tran_text,tok_text)
     check.click(pos_ner_show,[tok_text,pos_tag,ner_tag],[lab_pos_ner])
