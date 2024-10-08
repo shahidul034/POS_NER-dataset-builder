@@ -229,8 +229,9 @@ create_excel_if_not_exists()
 # text=" ".join(dataset[int(front)]['tokens'])
 with gr.Blocks(css=css) as demo:
     with gr.Row():
-        gr.Label(value="https://huggingface.co/datasets/conll2003",label="")
-        gr.Label(value="Total: "+str(len(dataset)),label="")
+        gr.Label(value="https://huggingface.co/datasets/conll2003",label="Dataset link")
+        gr.Label(value="Total: "+str(len(dataset)),label="Total number of sentence in dataset"),
+        gr.Label(value="Completed: "+str(len(pd.read_excel("data.xlsx"))),label="Total number of sentence completed")
     with gr.Row():
         ques=gr.Number(label="Question No.:")
         btn_ques=gr.Button("Move")
