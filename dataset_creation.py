@@ -87,9 +87,25 @@ def display_text(id):
     options = [bangla1, bangla2]
     return english_text, options
 
+def show_tok(tran_text,flag=1):
+    import nltk
+    # nltk.download('punkt')
+    tokens = nltk.word_tokenize(tran_text)
+    if tokens[len(tokens)-1]!="।":
+        temp=tokens[len(tokens)-1]
+        if temp[len(temp)-1]=="।":
+            t1,t2=temp[:len(temp)-1],temp[len(temp)-1]
+            tokens[len(tokens)-1]=t1
+            tokens.append(t2)
+        else:
+            tokens.append("।")
+    if flag==0:
+        return tokens
+    return {
+                tok_text: gr.Label(value=f"{tokens}")
+        }
 
-
-def display_table(front):
+def display_table(sent_no,flag=1):
     # translated_dataset = pd.read_excel("translated_dataset.xlsx")
     file_path="data.xlsx"
     if os.path.exists(file_path):
@@ -99,26 +115,27 @@ def display_table(front):
         temp = pd.DataFrame(columns=['id', 'tokens', 'pos_tag', 'ner_tag'])
         temp.to_excel(file_path, index=False)
 
-    if temp.isin([int(front)]).any().any()==True:
+    if temp.isin([int(sent_no)]).any().any()==True:
         gr.Warning("An answer already exists! If you submit another one, it will replace the previous answer.")
     
-    df = pd.DataFrame(dataset[front])
+    df = pd.DataFrame(dataset[sent_no])
     df=df.drop(['id','chunk_tags'],axis=1)
-    text=" ".join(dataset[int(front)]['tokens'])
+    text=" ".join(dataset[int(sent_no)]['tokens'])
     df_with_custom_index = df.copy()
     df_with_custom_index.index = [f"Row {i+1}" for i in range(len(df))]
-    
+    if flag==0:
+        return df_with_custom_index
     # Convert DataFrame with custom index to HTML table
     html_table = df_with_custom_index.to_html(index=True)
     # result=translated_dataset.loc[translated_dataset['id'] == front, 'Bangla']
-    eng_text, options=display_text(front)
+    eng_text, options=display_text(sent_no)
     # if result.empty:
     #     result=""
     # else:
     #     result=result.values[0]
     return [gr.HTML(value=f"<div style='overflow-x:auto;'>{html_table}</div>", visible=True),
     gr.Label(value=text,visible=True,label="Sentence"),
-    gr.Label(value=front,visible=True,label="Question No."), 
+    gr.Label(value=sent_no,visible=True,label="Question No."), 
     gr.Radio(choices=options,label="Select Translation", visible=True,interactive=True)
     # gr.Textbox(label="Enter translated text",info="sample of input: মিয়া বাপ্পি একদল বাঙালি কিশোরকে দেখিয়ে বলেন ।",value=result)
                ]
@@ -164,21 +181,7 @@ def pos_ner_show(tok_text,pos_tag,ner_tag):
         # lab: gr.Label(visible=True,elem_id="accepted",value="Submitted")
     }
 
-def show_tok(tran_text):
-    import nltk
-    # nltk.download('punkt')
-    tokens = nltk.word_tokenize(tran_text)
-    if tokens[len(tokens)-1]!="।":
-        temp=tokens[len(tokens)-1]
-        if temp[len(temp)-1]=="।":
-            t1,t2=temp[:len(temp)-1],temp[len(temp)-1]
-            tokens[len(tokens)-1]=t1
-            tokens.append(t2)
-        else:
-            tokens.append("।")
-    return {
-                tok_text: gr.Label(value=f"{tokens}")
-        }
+
 
 def save_data(id, tok_text, pos_tag, ner_tag):
     import ast
@@ -222,8 +225,8 @@ css = """
 """
 dataset=dataset_gen()
 create_excel_if_not_exists()
-front=int(open("current_data.txt","r").read())
-text=" ".join(dataset[int(front)]['tokens'])
+# sent_no=int(open("current_data.txt","r").read())
+# text=" ".join(dataset[int(front)]['tokens'])
 with gr.Blocks(css=css) as demo:
     with gr.Row():
         gr.Label(value="https://huggingface.co/datasets/conll2003",label="")
@@ -254,10 +257,22 @@ with gr.Blocks(css=css) as demo:
     with gr.Row():
         lab=gr.Label(visible=False)
     btn_ques.click(display_table,ques,[show_text1,show_text2,num_text,translation_options])
-    def translation_change(translation_options):
-        return gr.Textbox(label="Enter translated text",info="sample of input: মিয়া বাপ্পি একদল বাঙালি কিশোরকে দেখিয়ে বলেন ।",value=translation_options)
+    def translation_change(translation_options,sent_no):
+        english_text, options=display_text(sent_no)
+        df_index=display_table(sent_no,0)
+        tok_text=show_tok(translation_options,0)
+        if len(df_index)>len(tok_text):
+            for i in range(len(df_index)-len(tok_text)):
+                tok_text.append("Unknown")
+        elif len(df_index)<len(tok_text):
+            tok_text=tok_text[:len(df_index)]
+        df_index["Probable Bangla Token"]=tok_text
+        html_table = df_index.to_html(index=True)
+        return [gr.Textbox(label="Enter translated text",info="sample of input: মিয়া বাপ্পি একদল বাঙালি কিশোরকে দেখিয়ে বলেন ।",value=translation_options),
+                gr.HTML(value=f"<div style='overflow-x:auto;'>{html_table}</div>", visible=True)
+                ]
 
-    translation_options.change(translation_change,translation_options, tran_text)
+    translation_options.change(translation_change,[translation_options,ques], [tran_text,show_text1])
     show_btn.click(already_completed_show,[ques],[show_text1,show_text2,num_text])
     tran_text.change(show_tok,tran_text,tok_text)
     check.click(pos_ner_show,[tok_text,pos_tag,ner_tag],[lab_pos_ner])
