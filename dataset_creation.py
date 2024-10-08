@@ -58,14 +58,35 @@ def already_completed_show(id):
         output_elements.append(gr.Label(value=id, visible=True, label="Question No."))
     
     return output_elements
+
+import json
+
+with open("translation_data//banglat5_translations.json", "r", encoding="utf-8") as f1:
+    bangla1_data = json.load(f1)
+
+with open("translation_data//nllb_translations.json", "r", encoding="utf-8") as f2:
+    bangla2_data = json.load(f2)
+
+# Create a DataFrame with id, English, Bangla1, and Bangla2 columns
+data = {
+    "id": list(range(0, len(bangla1_data))),  # Create a range of IDs based on the number of translations
+    "English": [item["en"] for item in bangla1_data],  # Use the English text from the bangla1_data
+    "Bangla1": [item["bn"] for item in bangla1_data],  # Use the Bangla translation from banglat5_translations
+    "Bangla2": [item["bn"] for item in bangla2_data]   # Use the Bangla translation from nllb_translations
+}
+
+df_translation = pd.DataFrame(data)
+
+# Function to retrieve text and translations based on selected ID
 def display_text(id):
-    translated_dataset = pd.read_excel("translated_dataset.xlsx")
-    selected_row = translated_dataset[translated_dataset["id"] == id].iloc[0]  # Select the row where the id matches
+    selected_row = df_translation[df_translation["id"] == id].iloc[0]  # Select the row where the id matches
     english_text = selected_row["English"]
-    bangla1 = selected_row["Bangla1"]
+    bangla1 = selected_row["Bangla1"].replace("<pad>","")
+    bangla1 = bangla1.replace("</s>","")
     bangla2 = selected_row["Bangla2"]
     options = [bangla1, bangla2]
     return english_text, options
+
 
 
 def display_table(front):
