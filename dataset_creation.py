@@ -1,6 +1,6 @@
 import pandas as pd
 import nltk
-from tag_info import pos_tags_list,ner_tags_list,pos_tags_list_descr,ner_tags_list_descr,get_pos_tag_description,get_ner_tag_description
+from tag_info import pos_tags_list,ner_tags_list,pos_tags_list_descr,ner_tags_list_descr,get_pos_tag_description,get_ner_tag_description,markdown_data
 nltk.download('punkt_tab')
 
 pos_tags_reverse = {v: k for k, v in pos_tags_list.items()}
@@ -220,6 +220,8 @@ def save_data(id, tok_text, pos_tag, ner_tag):
 
     # Save the updated DataFrame back to the Excel file
     df.to_excel('data.xlsx', index=False)
+    df.to_excel('backup//data.xlsx', index=False)
+    return gr.Label(value="Completed: "+str(len(pd.read_excel("data.xlsx"))),label="Total number of sentence completed")
 
 
 
@@ -237,7 +239,7 @@ with gr.Blocks(css=css) as demo:
     with gr.Row():
         gr.Label(value="https://huggingface.co/datasets/conll2003",label="Dataset link")
         gr.Label(value="Total: "+str(len(dataset)),label="Total number of sentence in dataset"),
-        gr.Label(value="Completed: "+str(len(pd.read_excel("data.xlsx"))),label="Total number of sentence completed")
+        completed=gr.Label(value="Completed: "+str(len(pd.read_excel("data.xlsx"))),label="Total number of sentence completed")
     with gr.Row():
         ques=gr.Number(label="Question No.:")
         btn_ques=gr.Button("Move")
@@ -265,85 +267,8 @@ with gr.Blocks(css=css) as demo:
         lab=gr.Label(visible=False)
     with gr.Row():
         gr.Markdown(
-            """
-## POS Tags Documentation
-
-- `"` : 0 - Quotation mark (open or close)
-- `''` : 1 - Closing quotation mark
-- `#` : 2 - Number sign (e.g., hashtags)
-- `$` : 3 - Dollar sign
-- `(` : 4 - Left parenthesis
-- `)` : 5 - Right parenthesis
-- `,` : 6 - Comma
-- `।` : 7 - Bengali punctuation mark for a full stop (period)
-- `:` : 8 - Colon
-- ``` ` ``` : 9 - Opening quotation mark
-- `CC` : 10 - Coordinating conjunction (e.g., *and*, *but*)
-- `CD` : 11 - Cardinal number (e.g., *one*, *two*)
-- `DT` : 12 - Determiner (e.g., *the*, *a*)
-- `EX` : 13 - Existential "there" (e.g., *there is*)
-- `FW` : 14 - Foreign word
-- `IN` : 15 - Preposition or subordinating conjunction (e.g., *in*, *on*, *because*)
-- `JJ` : 16 - Adjective (e.g., *big*, *old*)
-- `JJR` : 17 - Adjective, comparative (e.g., *bigger*, *older*)
-- `JJS` : 18 - Adjective, superlative (e.g., *biggest*, *oldest*)
-- `LS` : 19 - List item marker (e.g., *1.*, *2.*)
-- `MD` : 20 - Modal verb (e.g., *can*, *should*)
-- `NN` : 21 - Noun, singular or mass (e.g., *cat*, *laughter*)
-- `NNP` : 22 - Proper noun, singular (e.g., *John*, *Paris*)
-- `NNPS` : 23 - Proper noun, plural (e.g., *Americans*)
-- `NNS` : 24 - Noun, plural (e.g., *cats*)
-- `NN|SYM` : 25 - Noun or symbol (rare case)
-- `PDT` : 26 - Predeterminer (e.g., *all*, *both*)
-- `POS` : 27 - Possessive ending (e.g., *'s*)
-- `PRP` : 28 - Personal pronoun (e.g., *I*, *he*, *they*)
-- `PRP$` : 29 - Possessive pronoun (e.g., *my*, *his*, *their*)
-- `RB` : 30 - Adverb (e.g., *quickly*, *never*)
-- `RBR` : 31 - Adverb, comparative (e.g., *faster*)
-- `RBS` : 32 - Adverb, superlative (e.g., *fastest*)
-- `RP` : 33 - Particle (e.g., *up*, *off*)
-- `SYM` : 34 - Symbol (e.g., math or currency symbols)
-- `TO` : 35 - "To" as a preposition or infinitive marker (e.g., *to go*)
-- `UH` : 36 - Interjection (e.g., *uh*, *well*)
-- `VB` : 37 - Verb, base form (e.g., *run*, *eat*)
-- `VBD` : 38 - Verb, past tense (e.g., *ran*, *ate*)
-- `VBG` : 39 - Verb, gerund or present participle (e.g., *running*, *eating*)
-- `VBN` : 40 - Verb, past participle (e.g., *run*, *eaten*)
-- `VBP` : 41 - Verb, non-3rd person singular present (e.g., *I run*)
-- `VBZ` : 42 - Verb, 3rd person singular present (e.g., *he runs*)
-- `WDT` : 43 - Wh-determiner (e.g., *which*, *that*)
-- `WP` : 44 - Wh-pronoun (e.g., *who*, *what*)
-- `WP$` : 45 - Possessive wh-pronoun (e.g., *whose*)
-- `WRB` : 46 - Wh-adverb (e.g., *how*, *where*)
-
----
-
-## NER Tags Documentation
-
-- `O` : 0 - Outside of any named entity
-- `B-ADJP` : 1 - Beginning of an adjective phrase
-- `I-ADJP` : 2 - Inside an adjective phrase
-- `B-ADVP` : 3 - Beginning of an adverb phrase
-- `I-ADVP` : 4 - Inside an adverb phrase
-- `B-CONJP` : 5 - Beginning of a conjunction phrase
-- `I-CONJP` : 6 - Inside a conjunction phrase
-- `B-INTJ` : 7 - Beginning of an interjection
-- `I-INTJ` : 8 - Inside an interjection
-- `B-LST` : 9 - Beginning of a list item
-- `I-LST` : 10 - Inside a list item
-- `B-NP` : 11 - Beginning of a noun phrase (e.g., *the big dog*)
-- `I-NP` : 12 - Inside a noun phrase
-- `B-PP` : 13 - Beginning of a prepositional phrase (e.g., *in the house*)
-- `I-PP` : 14 - Inside a prepositional phrase
-- `B-PRT` : 15 - Beginning of a particle phrase (e.g., *up* in *give up*)
-- `I-PRT` : 16 - Inside a particle phrase
-- `B-SBAR` : 17 - Beginning of a subordinate clause (e.g., *that he left*)
-- `I-SBAR` : 18 - Inside a subordinate clause
-- `B-UCP` : 19 - Beginning of an unlike coordinated phrase
-- `I-UCP` : 20 - Inside an unlike coordinated phrase
-- `B-VP` : 21 - Beginning of a verb phrase (e.g., *ran quickly*)
-- `I-VP` : 22 - Inside a verb phrase
-
+            f"""
+{markdown_data}
 
 """
 
@@ -369,7 +294,7 @@ with gr.Blocks(css=css) as demo:
     tran_text.change(show_tok,tran_text,tok_text)
     check.click(pos_ner_show,[tok_text,pos_tag,ner_tag],[lab_pos_ner])
     # save.click(save_data,[num_text,tok_text,pos_tag,ner_tag],[lab,show_text1,show_text2])
-    save.click(save_data,[num_text,tok_text,pos_tag,ner_tag],None)
+    save.click(save_data,[num_text,tok_text,pos_tag,ner_tag],completed)
     
 
 demo.launch(share=False)
