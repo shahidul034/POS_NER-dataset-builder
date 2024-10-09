@@ -1,14 +1,8 @@
 import pandas as pd
 import nltk
+from tag_info import pos_tags_list,ner_tags_list,pos_tags_list_descr,ner_tags_list_descr,get_pos_tag_description,get_ner_tag_description
 nltk.download('punkt_tab')
-pos_tags_list={'"': 0, "''": 1, '#': 2, '$': 3, '(': 4, ')': 5, ',': 6, '।': 7, ':': 8, '``': 9, 'CC': 10, 'CD': 11, 'DT': 12,
- 'EX': 13, 'FW': 14, 'IN': 15, 'JJ': 16, 'JJR': 17, 'JJS': 18, 'LS': 19, 'MD': 20, 'NN': 21, 'NNP': 22, 'NNPS': 23,
- 'NNS': 24, 'NN|SYM': 25, 'PDT': 26, 'POS': 27, 'PRP': 28, 'PRP$': 29, 'RB': 30, 'RBR': 31, 'RBS': 32, 'RP': 33,
- 'SYM': 34, 'TO': 35, 'UH': 36, 'VB': 37, 'VBD': 38, 'VBG': 39, 'VBN': 40, 'VBP': 41, 'VBZ': 42, 'WDT': 43,
- 'WP': 44, 'WP$': 45, 'WRB': 46}
-ner_tags_list={'O': 0, 'B-ADJP': 1, 'I-ADJP': 2, 'B-ADVP': 3, 'I-ADVP': 4, 'B-CONJP': 5, 'I-CONJP': 6, 'B-INTJ': 7, 'I-INTJ': 8,
- 'B-LST': 9, 'I-LST': 10, 'B-NP': 11, 'I-NP': 12, 'B-PP': 13, 'I-PP': 14, 'B-PRT': 15, 'I-PRT': 16, 'B-SBAR': 17,
- 'I-SBAR': 18, 'B-UCP': 19, 'I-UCP': 20, 'B-VP': 21, 'I-VP': 22}
+
 pos_tags_reverse = {v: k for k, v in pos_tags_list.items()}
 ner_tags_reverse = {v: k for k, v in ner_tags_list.items()}
 def dataset_gen():
@@ -54,8 +48,8 @@ def already_completed_show(id):
             html_table += f"""
                 <tr>
                     <td>{token}</td>
-                    <td>{pos_tag}({pos_tags_reverse[int(pos_tag)]})</td>
-                    <td>{ner_tag}({ner_tags_reverse[int(ner_tag)]})</td>
+                    <td>{pos_tag}({get_pos_tag_description(pos_tag)})</td>
+                    <td>{ner_tag}({get_ner_tag_description(ner_tag)})</td>
                 </tr>
             """
         
@@ -129,8 +123,8 @@ def display_table(sent_no,flag=1):
         gr.Warning("An answer already exists! If you submit another one, it will replace the previous answer.")
     
     df = pd.DataFrame(dataset[sent_no])
-    df['pos_tags'] = df['pos_tags'].apply(lambda x: f"{x}({pos_tags_reverse[x]})")
-    df['ner_tags'] = df['ner_tags'].apply(lambda x: f"{x}({ner_tags_reverse[x]})")
+    df['pos_tags'] = df['pos_tags'].apply(lambda x: f"{x}({get_pos_tag_description(x)})")
+    df['ner_tags'] = df['ner_tags'].apply(lambda x: f"{x}({get_ner_tag_description(x)})")
     df=df.drop(['id','chunk_tags'],axis=1)
     text=" ".join(dataset[int(sent_no)]['tokens'])
     df_with_custom_index = df.copy()
