@@ -120,3 +120,97 @@ word2 = "joyful"
 are_similar, similarity_score = are_words_similar_bert(word1, word2)
 print(f"Are the words similar? {are_similar} (Similarity score: {similarity_score})")
 '''
+
+
+
+import json
+
+with open("translation_data//banglat5_translations.json", "r", encoding="utf-8") as f1:
+    bangla1_data = json.load(f1)
+    
+    
+#print(bangla1_data)
+
+with open("translation_data//nllb_translations.json", "r", encoding="utf-8") as f2:
+    bangla2_data = json.load(f2)
+    
+    
+    
+    
+def dataset_gen():
+    from datasets import load_from_disk
+    dataset = load_from_disk("data")
+    print(dataset)
+    
+    return dataset
+    
+dataset=dataset_gen()
+#dataset.head(10)
+
+for i in range(30):
+    print(dataset[i])
+
+
+'''
+# Install the bnltk library for Bangla language processing if you haven't already.
+# !pip install bnltk
+
+from bnltk.stemmer import BanglaStemmer
+
+# Initialize the Bangla stemmer
+stemmer = BanglaStemmer()
+
+# Input: Bangla words (change these to the words you want to stem)
+words = ['কুকুরগুলোকে', 'বইটির', 'গাছটির']
+
+# Stemming each word in the list
+for word in words:
+    root_word = stemmer.stem(word)
+    print(f'Original word: {word} --> Root word: {root_word}')
+
+'''
+
+"""
+import bangla_stemmer
+
+# Input: Bangla words
+words = ['কুকুরগুলোকে', 'বইটির', 'গাছটির']
+
+# Stemming each word using the module's functionality
+for word in words:
+    root_word = bangla_stemmer.stem(word)  # Adjust this based on what the module exposes
+    print(f'Original word: {word} --> Root word: {root_word}')
+
+"""
+
+'''
+from banglanlp import Lemmatizer
+
+# Initialize the Bangla lemmatizer
+lemmatizer = Lemmatizer()
+
+# Input: Bangla words
+words = ['কুকুরগুলোকে', 'বইটির', 'গাছটির']
+
+# Lemmatizing each word
+for word in words:
+    root_word = lemmatizer.lemmatize(word)
+    print(f'Original word: {word} --> Root word: {root_word}')
+
+'''
+
+'''
+from bnltk.stemmer import BanglaStemmer
+
+# Initialize the Bangla stemmer
+stemmer = BanglaStemmer()
+
+# Input: Bangla words
+words = ['কুকুরগুলোকে', 'বইটির', 'গাছটির']
+
+# Stemming each word
+for word in words:
+    root_word = stemmer.stem(word)
+    print(f'Original word: {word} --> Root word: {root_word}')
+
+'''

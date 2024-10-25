@@ -12,6 +12,10 @@ ban_map_ner={}
 ban_map_pos={}
 
 
+ban_tran_token_map_ner={}
+ban_tran_token_map_pos={}
+
+
 ner_tkn={}
 pos_tkn={}
 
@@ -245,6 +249,8 @@ eng_df=""
 
 
 
+
+
 def display_table(sent_no,flag=1):
     global eng_df;
     
@@ -307,7 +313,6 @@ def display_table(sent_no,flag=1):
 
 
 
-
 import os
 import pandas as pd
 
@@ -333,9 +338,13 @@ def create_excel_if_not_exists(filename='data.xlsx'):
 
 def pos_ner_show(tok_text,pos_tag,ner_tag):
     # Replace index names with custom labels
-    print("------------------Text--------",tok_text)
+    print("----------Before--------tok_text--------",tok_text)
+    
     import ast
     tok_text = ast.literal_eval(tok_text)
+    
+    print("----------After----Eval----tok_text----------->",tok_text)
+    
     data={
         "tokens": tok_text,
         "pos_tag":pos_tag.split(","),
@@ -345,6 +354,23 @@ def pos_ner_show(tok_text,pos_tag,ner_tag):
         df = pd.DataFrame(data)
     except:
         gr.Warning("All arrays must be of the same length!!!")
+        
+        
+    
+    #df['pos_tag'] = df['pos_tag'].apply(lambda x: f"{x}({get_pos_tag_description(x)})")
+    #df['ner_tag'] = df['ner_tag'].apply(lambda x: f"{x}({get_ner_tag_description(x)})")
+    
+    #df['pos_tag'] = df['pos_tag'].apply(lambda x: f"{get_pos_tag_description(x)}")
+    
+    
+    #print("Check------------->",get_pos_tag_description(22))
+    #print("Check------------->",get_pos_tag_description(23))
+    df['pos_tag'] = df['pos_tag'].apply(lambda x: f"{get_pos_tag_description(int(x))}"if x.isdigit() else x)
+    df['ner_tag'] = df['ner_tag'].apply(lambda x: f"{get_ner_tag_description(int(x))}"if x.isdigit() else x)
+# Display the resulting DataFrame
+    #print(df)
+    
+    
     df_with_custom_index = df.copy()
     df_with_custom_index.index = [f"Row {i+1}" for i in range(len(df))]
     
@@ -455,8 +481,8 @@ create_excel_if_not_exists()
 with gr.Blocks(css=css) as demo:
     with gr.Row():
         gr.Label(value="https://huggingface.co/datasets/conll2003",label="Dataset link")
-        gr.Label(value="Total: "+str(len(dataset)),label="Total number of sentence in dataset"),
-        gr.Label(value="Completed: "+str(len(pd.read_excel("data.xlsx"))),label="Total number of sentence completed")
+        gr.Label(value="Total: "+str(len(dataset)),label="Total number of sentence in dataset")
+        #gr.Label(value="Completed: "+str(len(pd.read_excel("data.xlsx"))),label="Total number of sentence completed")
   
   
   
@@ -716,9 +742,15 @@ with gr.Blocks(css=css) as demo:
         
         #print("Token-->",eng_tkn_list[1],eng_pos_tkn_list[1])
         
+        
         for i in range(0,len(eng_tkn_list),1):
             ner_tkn[eng_tkn_list[i].lower()]=eng_ner_tkn_list[i]
             pos_tkn[eng_tkn_list[i].lower()]=eng_pos_tkn_list[i]
+            
+            tr_bn_token=translate_to_ban(eng_tkn_list[i])
+            
+            ban_tran_token_map_ner[tr_bn_token]=eng_ner_tkn_list[i]
+            ban_tran_token_map_pos[tr_bn_token]=eng_pos_tkn_list[i]
             
         
         str_nar=""
@@ -748,7 +780,13 @@ with gr.Blocks(css=css) as demo:
                
                print(xx,"trn-->",tk)
                
-               if tk in ner_tkn:
+               
+               if xx in ban_tran_token_map_ner:
+                   str_nar+=str(ban_tran_token_map_ner[xx])+","
+                   str_pos+=str(ban_tran_token_map_pos[xx])+","
+               
+               
+               elif tk in ner_tkn:
                    str_nar+=str(ner_tkn[tk])+","
                    str_pos+=str(pos_tkn[tk])+","
                    
@@ -762,11 +800,11 @@ with gr.Blocks(css=css) as demo:
                 
                else:
                   
-                 if tk is not None and isinstance(tk, str): 
-                  for tkn in eng_tkn_list:
-                      if(tkn=="."):continue;
-                      check,score=are_words_similar(tk, tkn)
-                      print("Main--->",tk,"--->",tkn,"-->Score--->",score)
+                 #if tk is not None and isinstance(tk, str): 
+                  #for tkn in eng_tkn_list:
+                      #if(tkn=="."):continue;
+                     # check,score=are_words_similar(tk, tkn)
+                      #print("Main--->",tk,"--->",tkn,"-->Score--->",score)
                       
                  ####################################################  
                  str_nar+="#,"
@@ -800,6 +838,7 @@ with gr.Blocks(css=css) as demo:
         
         
         
+        
     def sugg_2():
         
         # Read the Excel file
@@ -826,9 +865,15 @@ with gr.Blocks(css=css) as demo:
         
         #print("Token-->",eng_tkn_list[1],eng_pos_tkn_list[1])
         
+        
         for i in range(0,len(eng_tkn_list),1):
             ner_tkn[eng_tkn_list[i].lower()]=eng_ner_tkn_list[i]
             pos_tkn[eng_tkn_list[i].lower()]=eng_pos_tkn_list[i]
+            
+            tr_bn_token=translate_to_ban(eng_tkn_list[i])
+            
+            ban_tran_token_map_ner[tr_bn_token]=eng_ner_tkn_list[i]
+            ban_tran_token_map_pos[tr_bn_token]=eng_pos_tkn_list[i]
             
         
         str_nar=""
@@ -838,18 +883,34 @@ with gr.Blocks(css=css) as demo:
         str_pos_sug=""
         
         for xx in ban_df:
+            
+            
+               #print("----------------------DF--------------------->",ban_df);
+               #print("---------------------------Error in---------------------->",xx);
  
                tk=translate_to_en(xx)
+               #print("---------------------------Bangla Tran---------------------->",xx);
                #tk = tk.lower()
+               
+                   
                if tk is not None and isinstance(tk, str):
                      if tk.isalpha():
-                          tk = tk.lower()
+                          tk = tk.lower()  # Convert to lowercase only if tk is a word (contains only letters)
+    
+
                
                
                
                print(xx,"trn-->",tk)
                
-               if tk in ner_tkn:
+               
+               if xx in ban_tran_token_map_ner:
+                   str_nar+=str(ban_tran_token_map_ner[xx])+","
+                   str_pos+=str(ban_tran_token_map_pos[xx])+","
+                   print("---------------------Tran---------------Map--->",xx)
+               
+               
+               elif tk in ner_tkn:
                    str_nar+=str(ner_tkn[tk])+","
                    str_pos+=str(pos_tkn[tk])+","
                    
@@ -862,12 +923,12 @@ with gr.Blocks(css=css) as demo:
                    str_pos_sug+=xx+","
                 
                else:
-                
-                 if tk is not None and isinstance(tk, str):
-                  for tkn in eng_tkn_list:
-                      if(tkn=="."):continue;
-                      check,score=are_words_similar(tk, tkn)
-                      print("Main--->",tk,"--->",tkn,"-->Score--->",score)
+                  
+                 #if tk is not None and isinstance(tk, str): 
+                  #for tkn in eng_tkn_list:
+                    #  if(tkn=="."):continue;
+                      #check,score=are_words_similar(tk, tkn)
+                     # print("Main--->",tk,"--->",tkn,"-->Score--->",score)
                       
                  ####################################################  
                  str_nar+="#,"
@@ -883,6 +944,7 @@ with gr.Blocks(css=css) as demo:
         
         str_nar = str_nar[:-1]
         str_pos = str_pos[:-1]
+        
         str_nar_sug = str_nar_sug[:-1]
         str_pos_sug = str_pos_sug[:-1]
         
@@ -891,9 +953,8 @@ with gr.Blocks(css=css) as demo:
                 ner_sugg: gr.Label(value=str_nar_sug),
                 pos_sugg: gr.Label(value=str_pos_sug),
                 pos_tag:gr.Label(value=str_pos),
-                ner_tag: gr.Label(value=str_nar),  
+                ner_tag: gr.Label(value=str_nar),        
         }
-        
         
         
         
