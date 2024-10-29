@@ -1,0 +1,26 @@
+[
+    {
+        "id": 1.0,
+        "tokens": "['\u09aa\u09bf\u099f\u09be\u09b0', '\u09ac\u09cd\u09b2\u09cd\u09af\u09be\u0995\u09ac\u09be\u09b0\u09cd\u09a8']",
+        "pos_tag": [
+            "22",
+            "22"
+        ],
+        "ner_tag": [
+            "1",
+            "2"
+        ]
+    },
+    {
+        "id": 2.0,
+        "tokens": "['\u09ac\u09cd\u09b0\u09be\u09b8\u09c7\u09b2\u09cd\u09b8', '\u09e7\u09ef\u09ef\u09ec-\u09e6\u09ee-\u09e8\u09e8']",
+        "pos_tag": [
+            "22",
+            "11"
+        ],
+        "ner_tag": [
+            "5",
+            "0"
+        ]
+    }
+]

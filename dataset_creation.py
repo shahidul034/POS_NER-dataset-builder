@@ -6,6 +6,8 @@ nltk.download('punkt_tab')
 pos_tags_reverse = {v: k for k, v in pos_tags_list.items()}
 ner_tags_reverse = {v: k for k, v in ner_tags_list.items()}
 
+NER_TAG_NAME={0: 'O', 1: 'B-PER', 2: 'I-PER', 3: 'B-ORG', 4: 'I-ORG', 5: 'B-LOC', 6: 'I-LOC', 7: 'B-MISC', 8: 'I-MISC'}
+
 
 
 ban_map_ner={}
@@ -30,7 +32,7 @@ english_sentence="";
 
 
 
-
+"""
 import spacy
 
 # Load pre-trained language model
@@ -47,7 +49,7 @@ def are_words_similar(word1, word2, threshold=0.7):
     # Check if similarity exceeds the threshold
     return (similarity >= threshold),similarity
 
-
+"""
 
 
 
@@ -83,10 +85,36 @@ def already_completed_show(id):
     import ast
 
     # Read the Excel file
-    temp = pd.read_excel("data.xlsx")
+    #temp = pd.read_excel("data.xlsx")
+    
+        
+        
+        
+    # Check if the JSON file exists
+    if os.path.exists("data_storage.json"):
+      with open(file_path, "r") as file:
+        try:
+            data_list = json.load(file)  # Load JSON data
+            if isinstance(data_list, list):  # Ensure it's a list of records
+                temp = pd.DataFrame(data_list)  # Convert to DataFrame
+            else:
+                print("Error: JSON data is not in expected list format.")
+                temp = pd.DataFrame()  # Fallback to an empty DataFrame
+        except json.JSONDecodeError:
+            print("Error: JSON file is corrupted or empty.")
+            temp = pd.DataFrame()  # Fallback to an empty DataFrame
+    else:
+      # If JSON file doesn't exist, create an empty DataFrame with specified columns
+      temp = pd.DataFrame(columns=['id', 'tokens', 'pos_tags', 'ner_tags'])
+    
+    
+    
+    #print("---------------------ck1---------------->",temp);
     
     # Find the row(s) where the id matches
     row = temp[temp.isin([int(id)]).any(axis=1)]
+    
+    #print("---------------------ROW---------------->",row);
     
     print("ROW--->",row)
     
@@ -97,9 +125,19 @@ def already_completed_show(id):
     
     # Iterate through each row of the DataFrame
     for i, row_data in row.iterrows():
-        tokens = ast.literal_eval(row_data['tokens'])  # Convert string to list
-        pos_tags = ast.literal_eval(row_data['pos_tag'])  # Convert string to list
-        ner_tags = ast.literal_eval(row_data['ner_tag'])  # Convert string to list
+        #tokens = ast.literal_eval(row_data['tokens'])  # Convert string to list
+        #pos_tags = ast.literal_eval(row_data['pos_tag'])  # Convert string to list
+        #ner_tags = ast.literal_eval(row_data['ner_tag'])  # Convert string to list
+        
+        # tokens = row_data['tokens']  # Convert string to list
+        # pos_tags = row_data['pos_tag']  # Convert string to list
+        # ner_tags = row_data['ner_tag']  # Convert string to list
+        
+        
+        # Check if each field is a string; if so, use literal_eval to convert to a list
+        tokens = ast.literal_eval(row_data['tokens']) if isinstance(row_data['tokens'], str) else row_data['tokens']
+        pos_tags = ast.literal_eval(row_data['pos_tag']) if isinstance(row_data['pos_tag'], str) else row_data['pos_tag']
+        ner_tags = ast.literal_eval(row_data['ner_tag']) if isinstance(row_data['ner_tag'], str) else row_data['ner_tag']
         
         # Create an HTML table where each list element is a row in the table
         html_table = """
@@ -258,13 +296,57 @@ def display_table(sent_no,flag=1):
     eng_df=dataset[sent_no];
     
     # translated_dataset = pd.read_excel("translated_dataset.xlsx")
-    file_path="data.xlsx"
+    # file_path="data.xlsx"
+      
+    # if os.path.exists(file_path):
+    #     temp = pd.read_excel(file_path)
+    #     print("File exists and has been loaded.")
+    # else:
+    #     temp = pd.DataFrame(columns=['id', 'tokens', 'pos_tags', 'ner_tags'])
+    #     temp.to_excel(file_path, index=False)
+        
+        
+        
+    file_path = "data_storage.json"
+
+
+    """
+    # Check if the JSON file exists
     if os.path.exists(file_path):
-        temp = pd.read_excel(file_path)
+      with open(file_path, "r") as file:
+        data_list = json.load(file)
+        temp = pd.DataFrame(data_list)
         print("File exists and has been loaded.")
     else:
+         # Create an empty DataFrame with specified columns
         temp = pd.DataFrame(columns=['id', 'tokens', 'pos_tags', 'ner_tags'])
-        temp.to_excel(file_path, index=False)
+        
+        with open(file_path, "w") as file:
+          json.dump(temp.to_dict(orient="records"), file, indent=4)
+          #print("File did not exist. An empty JSON file has been created.")
+    
+        """
+        
+    # Check if the JSON file exists
+    if os.path.exists(file_path):
+      with open(file_path, "r") as file:
+        try:
+            data_list = json.load(file)  # Load JSON data
+            if isinstance(data_list, list):  # Ensure it's a list of records
+                temp = pd.DataFrame(data_list)  # Convert to DataFrame
+            else:
+                print("Error: JSON data is not in expected list format.")
+                temp = pd.DataFrame()  # Fallback to an empty DataFrame
+        except json.JSONDecodeError:
+            print("Error: JSON file is corrupted or empty.")
+            temp = pd.DataFrame()  # Fallback to an empty DataFrame
+    else:
+      # If JSON file doesn't exist, create an empty DataFrame with specified columns
+      temp = pd.DataFrame(columns=['id', 'tokens', 'pos_tags', 'ner_tags'])
+        
+        
+        
+        
 
     if temp.isin([int(sent_no)]).any().any()==True:
         gr.Warning("An answer already exists! If you submit another one, it will replace the previous answer.")
@@ -365,10 +447,20 @@ def pos_ner_show(tok_text,pos_tag,ner_tag):
     
     #print("Check------------->",get_pos_tag_description(22))
     #print("Check------------->",get_pos_tag_description(23))
+    
+    #df1=df
+    
+    
     df['pos_tag'] = df['pos_tag'].apply(lambda x: f"{get_pos_tag_description(int(x))}"if x.isdigit() else x)
-    df['ner_tag'] = df['ner_tag'].apply(lambda x: f"{get_ner_tag_description(int(x))}"if x.isdigit() else x)
+    df['ner_tag'] = df['ner_tag'].apply(lambda x: f"{NER_TAG_NAME[int(x)]}"if x.isdigit() else x)
+    
+    #df=df1
+    
+    
+    #df['ner_tag'] = df['ner_tag'].apply(lambda x: f"{get_ner_tag_description(int(x))}"if x.isdigit() else x)
 # Display the resulting DataFrame
     #print(df)
+    #NER_TAG_NAME
     
     
     df_with_custom_index = df.copy()
@@ -386,7 +478,9 @@ def pos_ner_show(tok_text,pos_tag,ner_tag):
 
 
 
-
+import json
+import ast
+import os
 
 
 
@@ -428,13 +522,56 @@ def save_data(id, tok_text, pos_tag, ner_tag):
     
    
     # Read existing data from the Excel file
-    df = pd.read_excel('data.xlsx')
+    #df = pd.read_excel('data.xlsx')
+    
+    
+    # # Load existing data from the JSON file if it exists
+    # if os.path.exists('data_storage.json'):
+    #   with open('data_storage.json', 'r') as file:
+    #     data_list = json.load(file)
+    # else:
+    #     data_list = []  # Initialize as an empty list if file doesn't exist
+        
+    file_path = "data_storage.json"   
+    # Load data from JSON file if it exists, otherwise initialize an empty DataFrame
+    if os.path.exists(file_path):
+     with open(file_path, "r") as file:
+        try:
+            data_list = json.load(file)  # Load JSON data
+            if isinstance(data_list, list):  # Ensure it’s a list of records
+                df = pd.DataFrame(data_list)  # Convert to DataFrame
+            else:
+                print("Error: JSON data is not in the expected list format.")
+                df = pd.DataFrame()  # Fallback to an empty DataFrame
+        except json.JSONDecodeError:
+            print("Error: JSON file is corrupted or empty.")
+            df = pd.DataFrame()  # Fallback to an empty DataFrame
+    else:
+        df = pd.DataFrame()  # Empty DataFrame if file doesn't exist
+    
+    
+    
+    
     
     # Convert tok_text from string to list using ast.literal_eval
     tok_text2 = ast.literal_eval(tok_text)
     
+    
     # Check if the id exists in the DataFrame
-    exists = df['id'].isin([int(id)]).any()
+    #exists = df['id'].isin([int(id)]).any()
+    
+    
+    
+    if 'id' in df.columns:
+      exists = df['id'].isin([int(id)]).any()
+    else:
+      print("The 'id' column is missing; initializing an empty DataFrame with the 'id' column.")
+      df['id'] = []  # Add an empty 'id' column if it's missing
+      exists = False  # No entries exist in an empty DataFrame
+    
+    
+    # Check if the id exists in the existing data
+    #exists = any(item['id'] == int(id) for item in data_list)
 
 
     # Prepare new data to insert
@@ -451,19 +588,57 @@ def save_data(id, tok_text, pos_tag, ner_tag):
     if exists:
         df = df[df['id'] != int(id)]  # Remove the existing row where the id matches
         gr.Warning(f"Data with id {id} already exists, deleting the row and appending the new data.")
+    
+    
+    
+    #if exists:
+    #   data_list = [item for item in data_list if item['id'] != int(id)]
+    #   gr.Warning(f"Data with id {id} already exists, deleting the row and appending the new data.")
+    
+    
+        
+    
+    #data_list.append(data)
 
     # Append the new data to the DataFrame
     df = df._append(data, ignore_index=True)
     gr.Info("New data appended successfully!")
 
     # Save the updated DataFrame back to the Excel file
-    df.to_excel('data.xlsx', index=False)
+    #df.to_excel('data.xlsx', index=False)
+    
+    # Convert the DataFrame back to a list of dictionaries
+    data_list = df.to_dict(orient="records")
+    
+
+    
+    # Save the updated data back to the JSON file
+    with open('data_storage.json', 'w') as file:
+      json.dump(data_list, file, indent=4)
 
 
 
 
 
 
+
+file_path = "data_storage.json"   
+    # Load data from JSON file if it exists, otherwise initialize an empty DataFrame
+if os.path.exists(file_path):
+     with open(file_path, "r") as file:
+        try:
+            data_list = json.load(file)  # Load JSON data
+            if isinstance(data_list, list):  # Ensure it’s a list of records
+                s_df = pd.DataFrame(data_list)  # Convert to DataFrame
+            else:
+                print("Error: JSON data is not in the expected list format.")
+                s_df = pd.DataFrame()  # Fallback to an empty DataFrame
+        except json.JSONDecodeError:
+            print("Error: JSON file is corrupted or empty.")
+            s_df = pd.DataFrame()  # Fallback to an empty DataFrame
+else:
+        s_df = pd.DataFrame()  # Empty DataFrame if file doesn't exist
+    
 
 
 
@@ -482,7 +657,7 @@ with gr.Blocks(css=css) as demo:
     with gr.Row():
         gr.Label(value="https://huggingface.co/datasets/conll2003",label="Dataset link")
         gr.Label(value="Total: "+str(len(dataset)),label="Total number of sentence in dataset")
-        #gr.Label(value="Completed: "+str(len(pd.read_excel("data.xlsx"))),label="Total number of sentence completed")
+        gr.Label(value="Completed: "+str(len(s_df)),label="Total number of sentence completed")
   
   
   
@@ -759,6 +934,8 @@ with gr.Blocks(css=css) as demo:
         str_nar_sug=""
         str_pos_sug=""
         
+        serial=0
+        
         for xx in ban_df:
             
             
@@ -795,7 +972,8 @@ with gr.Blocks(css=css) as demo:
                elif xx in ban_map_ner:
                    str_nar+=str(ban_map_ner[xx])+","
                    #str_pos+=str(ban_map_pos[xx])+","
-                   str_pos+="#,"
+                   #str_pos+="#,"
+                   str_pos+="#"+str(serial)+","
                    str_pos_sug+=xx+","
                 
                else:
@@ -807,8 +985,12 @@ with gr.Blocks(css=css) as demo:
                       #print("Main--->",tk,"--->",tkn,"-->Score--->",score)
                       
                  ####################################################  
-                 str_nar+="#,"
-                 str_pos+="#,"
+                 #str_nar+="#,"
+                 #str_pos+="#,"
+                 
+                 serial+=1
+                 str_pos+="#"+str(serial)+","
+                 str_nar+="#"+str(serial)+","
                  
                  str_nar_sug+=xx+","
                  str_pos_sug+=xx+","
@@ -882,6 +1064,8 @@ with gr.Blocks(css=css) as demo:
         str_nar_sug=""
         str_pos_sug=""
         
+        serial=0
+        
         for xx in ban_df:
             
             
@@ -919,7 +1103,8 @@ with gr.Blocks(css=css) as demo:
                elif xx in ban_map_ner:
                    str_nar+=str(ban_map_ner[xx])+","
                    #str_pos+=str(ban_map_pos[xx])+","
-                   str_pos+="#,"
+                   serial+=1
+                   str_pos+="#"+str(serial)+","
                    str_pos_sug+=xx+","
                 
                else:
@@ -931,8 +1116,11 @@ with gr.Blocks(css=css) as demo:
                      # print("Main--->",tk,"--->",tkn,"-->Score--->",score)
                       
                  ####################################################  
-                 str_nar+="#,"
-                 str_pos+="#,"
+                 #str_nar+="#,"
+                 #str_pos+="#,"
+                 serial+=1
+                 str_pos+="#"+str(serial)+","
+                 str_nar+="#"+str(serial)+","
                  
                  str_nar_sug+=xx+","
                  str_pos_sug+=xx+","

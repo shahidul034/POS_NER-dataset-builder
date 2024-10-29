@@ -120,7 +120,7 @@ word2 = "joyful"
 are_similar, similarity_score = are_words_similar_bert(word1, word2)
 print(f"Are the words similar? {are_similar} (Similarity score: {similarity_score})")
 '''
-
+'''
 
 
 import json
@@ -149,7 +149,7 @@ dataset=dataset_gen()
 
 for i in range(30):
     print(dataset[i])
-
+'''
 
 '''
 # Install the bnltk library for Bangla language processing if you haven't already.
@@ -214,3 +214,94 @@ for word in words:
     print(f'Original word: {word} --> Root word: {root_word}')
 
 '''
+
+import json
+
+"""
+
+# Sample data to save
+data = {
+    "name": "John the don",
+    "age": 35,
+    "city": "New York dd"
+}
+
+# Saving data to a JSON file
+with open("data_storage.json", "w") as file:
+    json.dump(data, file, indent=4)  # `indent=4` makes the file readable by adding indentation
+
+
+"""
+
+"""
+# Loading data from a JSON file
+with open("data_storage.json", "r") as file:
+    saved_data = json.load(file)
+
+print(saved_data)
+
+
+
+
+# Converting Python dictionary to JSON string
+json_string = json.dumps(saved_data, indent=4)
+print(json_string)
+
+# Converting JSON string back to Python dictionary
+data_from_string = json.loads(json_string)
+print(data_from_string)
+
+
+"""
+import os
+import json
+import pandas as pd
+import ast
+
+file_path = "data_storage.json"
+id = 2
+
+# Load data from JSON file if it exists, otherwise initialize an empty DataFrame
+if os.path.exists(file_path):
+    with open(file_path, "r") as file:
+        try:
+            data_list = json.load(file)  # Load JSON data
+            if isinstance(data_list, list):  # Ensure it's a list of records
+                temp = pd.DataFrame(data_list)  # Convert to DataFrame
+            else:
+                print("Error: JSON data is not in expected list format.")
+                temp = pd.DataFrame()  # Fallback to an empty DataFrame
+        except json.JSONDecodeError:
+            print("Error: JSON file is corrupted or empty.")
+            temp = pd.DataFrame()  # Fallback to an empty DataFrame
+else:
+    # If JSON file doesn't exist, create an empty DataFrame with specified columns
+    temp = pd.DataFrame(columns=['id', 'tokens', 'pos_tag', 'ner_tag'])
+
+print("---------------------ck1---------------->", temp)
+
+# Find the row(s) where the id matches
+row = temp[temp['id'] == int(id)]  # Ensure 'id' is an integer for comparison
+
+print("ROW--->", row)
+
+if row.empty:
+    print("Warning: Previous answer does not exist!")
+else:
+    # Initialize a list to hold the outputs for each row
+    output_elements = []
+
+    # Iterate through each row of the DataFrame
+    for i, row_data in row.iterrows():
+        # Check if each field is a string; if so, use literal_eval to convert to a list
+        tokens = ast.literal_eval(row_data['tokens']) if isinstance(row_data['tokens'], str) else row_data['tokens']
+        pos_tags = ast.literal_eval(row_data['pos_tag']) if isinstance(row_data['pos_tag'], str) else row_data['pos_tag']
+        ner_tags = ast.literal_eval(row_data['ner_tag']) if isinstance(row_data['ner_tag'], str) else row_data['ner_tag']
+        
+        
+        
+        # Print the processed row
+        print(f"ROW---> id: {row_data['id']}, tokens: {tokens}, pos_tags: {pos_tags}, ner_tags: {ner_tags}")
+        
+        print(tokens[0])
+        print(tokens[1])
