@@ -151,13 +151,14 @@ def already_completed_show(id):
             </thead>
             <tbody>
         """
+        
         # Populate the table with each element from the tokens, pos_tags, and ner_tags lists
         for token, pos_tag, ner_tag in zip(tokens, pos_tags, ner_tags):
             html_table += f"""
                 <tr>
                     <td>{token}</td>
-                    <td>{pos_tag}({get_pos_tag_description(pos_tag)})</td>
-                    <td>{ner_tag}({get_ner_tag_description(ner_tag)})</td>
+                    <td>{pos_tag}</td>
+                    <td>{ner_tag}</td>
                 </tr>
             """
         
