@@ -790,29 +790,14 @@ with gr.Blocks(css=css) as demo:
 ## NER Tags Documentation
 
 - `O` : 0 - Outside of any named entity
-- `B-ADJP` : 1 - Beginning of an adjective phrase
-- `I-ADJP` : 2 - Inside an adjective phrase
-- `B-ADVP` : 3 - Beginning of an adverb phrase
-- `I-ADVP` : 4 - Inside an adverb phrase
-- `B-CONJP` : 5 - Beginning of a conjunction phrase
-- `I-CONJP` : 6 - Inside a conjunction phrase
-- `B-INTJ` : 7 - Beginning of an interjection
-- `I-INTJ` : 8 - Inside an interjection
-- `B-LST` : 9 - Beginning of a list item
-- `I-LST` : 10 - Inside a list item
-- `B-NP` : 11 - Beginning of a noun phrase (e.g., *the big dog*)
-- `I-NP` : 12 - Inside a noun phrase
-- `B-PP` : 13 - Beginning of a prepositional phrase (e.g., *in the house*)
-- `I-PP` : 14 - Inside a prepositional phrase
-- `B-PRT` : 15 - Beginning of a particle phrase (e.g., *up* in *give up*)
-- `I-PRT` : 16 - Inside a particle phrase
-- `B-SBAR` : 17 - Beginning of a subordinate clause (e.g., *that he left*)
-- `I-SBAR` : 18 - Inside a subordinate clause
-- `B-UCP` : 19 - Beginning of an unlike coordinated phrase
-- `I-UCP` : 20 - Inside an unlike coordinated phrase
-- `B-VP` : 21 - Beginning of a verb phrase (e.g., *ran quickly*)
-- `I-VP` : 22 - Inside a verb phrase
-
+- `B-PER` : 1 - Beginning of a person name
+- `I-PER` : 2 - Inside a person name
+- `B-ORG` : 3 - Beginning of an organization name
+- `I-ORG` : 4 - Inside an organization name
+- `B-LOC` : 5 - Beginning of a location name
+- `I-LOC` : 6 - Inside a location name
+- `B-MISC` : 7 - Beginning of a miscellaneous entity
+- `I-MISC` : 8 - Inside a miscellaneous entity
 
 """
 
