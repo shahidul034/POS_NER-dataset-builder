@@ -253,6 +253,10 @@ print(data_from_string)
 
 
 """
+
+
+
+"""
 import os
 import json
 import pandas as pd
@@ -305,3 +309,23 @@ else:
         
         print(tokens[0])
         print(tokens[1])
+
+
+"""
+
+
+"""
+from bnltk.stemmer import BanglaStemmer
+
+# Initialize stemmer (works similarly for lemmatization in rule-based approach)
+bangla_stemmer = BanglaStemmer()
+
+#words = ["আমারগুলো", "বাচ্চারা", "খাইছিলাম", "ভাতটি", "জার্মানদের"]
+#lemmatized_words = [bangla_stemmer.stem(word) for word in words]
+
+word="গরুর"
+xx=bangla_stemmer.stem(word);
+
+print("Lemmatized Words:", xx)
+
+"""

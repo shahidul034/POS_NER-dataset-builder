@@ -13,6 +13,9 @@ NER_TAG_NAME={0: 'O', 1: 'B-PER', 2: 'I-PER', 3: 'B-ORG', 4: 'I-ORG', 5: 'B-LOC'
 ban_map_ner={}
 ban_map_pos={}
 
+from bnltk.stemmer import BanglaStemmer
+bangla_stemmer = BanglaStemmer()
+
 
 ban_tran_token_map_ner={}
 ban_tran_token_map_pos={}
@@ -269,7 +272,7 @@ def show_tok(tran_text,flag=1):
     
 
     return {
-                tok_text: gr.Label(value=f"{tokens}"),
+                tok_text: gr.Label(value=f"{tokens}")
                 
         }
     
@@ -421,12 +424,12 @@ def create_excel_if_not_exists(filename='data.xlsx'):
 
 def pos_ner_show(tok_text,pos_tag,ner_tag):
     # Replace index names with custom labels
-    print("----------Before--------tok_text--------",tok_text)
+    #print("----------Before--------tok_text--------",tok_text)
     
     import ast
     tok_text = ast.literal_eval(tok_text)
     
-    print("----------After----Eval----tok_text----------->",tok_text)
+    #print("----------After----Eval----tok_text----------->",tok_text)
     
     data={
         "tokens": tok_text,
@@ -484,6 +487,9 @@ import ast
 import os
 
 
+# Read the Excel file
+file_path6 = 'token_data_map.xlsx'  # Replace with your file path
+df_Map = pd.read_excel(file_path6, usecols="A:C")  # Read columns A and c
 
 
 
@@ -507,8 +513,12 @@ def save_data(id, tok_text, pos_tag, ner_tag):
     file_path6 = 'token_data_map.xlsx'  # Replace with your file path
     df1 = pd.read_excel(file_path6, usecols="A:C")  # Read columns A and c
     
+    #global df_Map
+    #df1 = df_Map  # Read columns A and c
+    
     
     ld=len(df1);
+    
     for i in range(0,len(ban_df),1):
         xx=ban_df[i]
         if xx not in ban_map_ner:
@@ -520,6 +530,11 @@ def save_data(id, tok_text, pos_tag, ner_tag):
             
         
             
+    file_path6 = 'token_data_map.xlsx'  # Replace with your file path
+    df1 = pd.read_excel(file_path6, usecols="A:C")  # Read columns A and c
+    
+    global df_Map
+    df_Map=df1  # Read columns A and c
     
    
     # Read existing data from the Excel file
@@ -701,7 +716,8 @@ with gr.Blocks(css=css) as demo:
  #tran_text.change(show_tok,tran_text,tok_text)  
     
     with gr.Row():
-        pos_sugg=gr.Label(label="POS Suggesion")
+        #pos_sugg=gr.Label(label="POS Suggesion")
+        pos_sugg = gr.Textbox(label="POS Suggesion", lines=2)
         
         
     with gr.Row():
@@ -713,8 +729,8 @@ with gr.Blocks(css=css) as demo:
         
         
     with gr.Row():
-        ner_sugg = gr.Label(label="NER Suggestion", elem_id="ner_sugg_label")  # Use elem_id to apply custom CSS
-        
+        #ner_sugg = gr.Label(label="NER Suggestion", elem_id="ner_sugg_label")  # Use elem_id to apply custom CSS
+        ner_sugg = gr.Textbox(label="NER Suggestion", lines=2)
         
     with gr.Row():
         ner_tag = gr.Textbox(label="Enter NER tag",info="sample of input: 22, 42, 16, 21, 35, 37, 16, 21, 7")
@@ -880,8 +896,14 @@ with gr.Blocks(css=css) as demo:
     def sugg():
         
         # Read the Excel file
-        file_path6 = 'token_data_map.xlsx'  # Replace with your file path
-        df11 = pd.read_excel(file_path6, usecols="A:C")  # Read columns A and c
+        #file_path6 = 'token_data_map.xlsx'  # Replace with your file path
+        # Read the Excel file
+
+        global df_Map
+        df11 = df_Map  # Read columns A and c
+        
+        
+        
         
         len_b_xl=len(df11)
         for i in range(0,len_b_xl,1):
@@ -927,8 +949,16 @@ with gr.Blocks(css=css) as demo:
             
                #print("----------------------DF--------------------->",ban_df);
                #print("---------------------------Error in---------------------->",xx);
+               
+               treamed=bangla_stemmer.stem(xx)
+               
+               print(xx,"------------->Treamed---------to----->",treamed);
+               
+               #xx=treamed;
+               
+               #print(xx,"------------->Treamed---------to----->",treamed);
  
-               tk=translate_to_en(xx)
+               tk=translate_to_en(treamed)
                #print("---------------------------Bangla Tran---------------------->",xx);
                #tk = tk.lower()
                
@@ -952,6 +982,7 @@ with gr.Blocks(css=css) as demo:
                elif tk in ner_tkn:
                    str_nar+=str(ner_tkn[tk])+","
                    str_pos+=str(pos_tkn[tk])+","
+                   print("---------Flag--------->",tk,"-------->",xx)
                    
          
                    
@@ -959,8 +990,10 @@ with gr.Blocks(css=css) as demo:
                    str_nar+=str(ban_map_ner[xx])+","
                    #str_pos+=str(ban_map_pos[xx])+","
                    #str_pos+="#,"
+                   serial+=1
                    str_pos+="#"+str(serial)+","
-                   str_pos_sug+=xx+","
+                   str_pos_sug+=str(serial)+")"+xx+","
+                  
                 
                else:
                   
@@ -978,8 +1011,8 @@ with gr.Blocks(css=css) as demo:
                  str_pos+="#"+str(serial)+","
                  str_nar+="#"+str(serial)+","
                  
-                 str_nar_sug+=xx+","
-                 str_pos_sug+=xx+","
+                 str_nar_sug+=str(serial)+")"+xx+","
+                 str_pos_sug+=str(serial)+")"+xx+","
                  
                  
                
@@ -992,12 +1025,15 @@ with gr.Blocks(css=css) as demo:
         str_nar_sug = str_nar_sug[:-1]
         str_pos_sug = str_pos_sug[:-1]
         
+        list_of_str_nar_sug = str_nar_sug
+        list_of_str_pos_sug = str_pos_sug
+        
         
         tr_g=translate_to_ban(english_sentence)
         
         return {
-                ner_sugg: gr.Label(value=str_nar_sug),
-                pos_sugg: gr.Label(value=str_pos_sug),
+                ner_sugg: gr.Label(value=list_of_str_nar_sug),
+                pos_sugg: gr.Label(value=list_of_str_pos_sug),
                 pos_tag:gr.Label(value=str_pos),
                 ner_tag: gr.Label(value=str_nar),
                 trans_google_text: gr.Label(value=tr_g)
@@ -1010,8 +1046,10 @@ with gr.Blocks(css=css) as demo:
     def sugg_2():
         
         # Read the Excel file
-        file_path6 = 'token_data_map.xlsx'  # Replace with your file path
-        df11 = pd.read_excel(file_path6, usecols="A:C")  # Read columns A and c
+        # file_path6 = 'token_data_map.xlsx'  # Replace with your file path
+        # df11 = pd.read_excel(file_path6, usecols="A:C")  # Read columns A and c
+        global df_Map
+        df11 = df_Map  # Read columns A and c
         
         len_b_xl=len(df11)
         for i in range(0,len_b_xl,1):
@@ -1057,8 +1095,20 @@ with gr.Blocks(css=css) as demo:
             
                #print("----------------------DF--------------------->",ban_df);
                #print("---------------------------Error in---------------------->",xx);
+               
+               
+               
+               
+               
+               treamed=bangla_stemmer.stem(xx)
+               
+               print(xx,"------------->Treamed---------to----->",treamed);
+               
+               #xx=treamed;
+               
+               tk=translate_to_en(treamed)
  
-               tk=translate_to_en(xx)
+               #tk=translate_to_en(xx)
                #print("---------------------------Bangla Tran---------------------->",xx);
                #tk = tk.lower()
                
@@ -1077,7 +1127,7 @@ with gr.Blocks(css=css) as demo:
                if xx in ban_tran_token_map_ner:
                    str_nar+=str(ban_tran_token_map_ner[xx])+","
                    str_pos+=str(ban_tran_token_map_pos[xx])+","
-                   print("---------------------Tran---------------Map--->",xx)
+                   #print("---------------------Tran---------------Map--->",xx)
                
                
                elif tk in ner_tkn:
@@ -1091,7 +1141,8 @@ with gr.Blocks(css=css) as demo:
                    #str_pos+=str(ban_map_pos[xx])+","
                    serial+=1
                    str_pos+="#"+str(serial)+","
-                   str_pos_sug+=xx+","
+                   str_pos_sug+=str(serial)+")"+xx+","
+                  
                 
                else:
                   
@@ -1108,8 +1159,8 @@ with gr.Blocks(css=css) as demo:
                  str_pos+="#"+str(serial)+","
                  str_nar+="#"+str(serial)+","
                  
-                 str_nar_sug+=xx+","
-                 str_pos_sug+=xx+","
+                 str_nar_sug+=str(serial)+")"+xx+","
+                 str_pos_sug+=str(serial)+")"+xx+","
                  
                  
                
@@ -1123,9 +1174,16 @@ with gr.Blocks(css=css) as demo:
         str_pos_sug = str_pos_sug[:-1]
         
         
+        #list_of_str_nar_sug = str_nar_sug.split(",")
+        #list_of_str_pos_sug = str_pos_sug.split(",")
+        
+        list_of_str_nar_sug = str_nar_sug
+        list_of_str_pos_sug = str_pos_sug
+        
+        
         return {
-                ner_sugg: gr.Label(value=str_nar_sug),
-                pos_sugg: gr.Label(value=str_pos_sug),
+                ner_sugg: gr.Label(value=list_of_str_nar_sug),
+                pos_sugg: gr.Label(value=list_of_str_pos_sug),
                 pos_tag:gr.Label(value=str_pos),
                 ner_tag: gr.Label(value=str_nar),        
         }
