@@ -8,6 +8,18 @@ ner_tags_reverse = {v: k for k, v in ner_tags_list.items()}
 
 NER_TAG_NAME={0: 'O', 1: 'B-PER', 2: 'I-PER', 3: 'B-ORG', 4: 'I-ORG', 5: 'B-LOC', 6: 'I-LOC', 7: 'B-MISC', 8: 'I-MISC'}
 
+General_POS_TAG = {
+    '"': 0,
+    "''": 1,
+    '#': 2,
+    '$': 3,
+    '(': 4,
+    ')': 5,
+    ',': 6,
+    '।': 7,
+    ':': 8,
+    '`': 9
+}
 
 
 ban_map_ner={}
@@ -713,7 +725,9 @@ with gr.Blocks(css=css) as demo:
         #print("Tokenized text--->",tok_text)
     
     
- #tran_text.change(show_tok,tran_text,tok_text)  
+ #tran_text.change(show_tok,tran_text,tok_text)
+    with gr.Row():
+        pos_suggs_rem = gr.Textbox(label="POS Tags", lines=2)  
     
     with gr.Row():
         #pos_sugg=gr.Label(label="POS Suggesion")
@@ -727,6 +741,9 @@ with gr.Blocks(css=css) as demo:
     #with gr.Row():
         #ner_sugg=gr.Label(label="NER Suggesion")
         
+    with gr.Row():
+        #ner_sugg = gr.Label(label="NER Suggestion", elem_id="ner_sugg_label")  # Use elem_id to apply custom CSS
+        ner_suggs_rem = gr.Textbox(label="NER Tags", lines=2)
         
     with gr.Row():
         #ner_sugg = gr.Label(label="NER Suggestion", elem_id="ner_sugg_label")  # Use elem_id to apply custom CSS
@@ -974,14 +991,20 @@ with gr.Blocks(css=css) as demo:
                print(xx,"trn-->",tk)
                
                
+               
+               
+               
                if xx in ban_tran_token_map_ner:
                    str_nar+=str(ban_tran_token_map_ner[xx])+","
                    str_pos+=str(ban_tran_token_map_pos[xx])+","
+                   #eng_tkn_list.remove("asa")
                
                
                elif tk in ner_tkn:
                    str_nar+=str(ner_tkn[tk])+","
                    str_pos+=str(pos_tkn[tk])+","
+                   
+                   #eng_tkn_list.remove(tk)
                    print("---------Flag--------->",tk,"-------->",xx)
                    
          
@@ -990,9 +1013,17 @@ with gr.Blocks(css=css) as demo:
                    str_nar+=str(ban_map_ner[xx])+","
                    #str_pos+=str(ban_map_pos[xx])+","
                    #str_pos+="#,"
-                   serial+=1
-                   str_pos+="#"+str(serial)+","
-                   str_pos_sug+=str(serial)+")"+xx+","
+                   
+                   if xx in General_POS_TAG:
+                      str_pos+=str(General_POS_TAG[xx])+",";
+                      
+                   else:
+                       
+                       serial+=1
+                       str_pos+="#"+str(serial)+","
+                       str_pos_sug+=str(serial)+")"+xx+","
+                       
+                      
                   
                 
                else:
@@ -1019,8 +1050,21 @@ with gr.Blocks(css=css) as demo:
         print("Str  NAR--->",str_nar)
         print("Str  POS--->",str_pos)
         
+        
+        
+        st_nertag_rememaining=""
+        st_postag_rememaining=""
+        
+        for tk in eng_tkn_list:
+            st_nertag_rememaining+=tk+"("+str(ner_tkn[tk.lower()])+"),"
+            st_postag_rememaining+=tk+"("+str(pos_tkn[tk.lower()])+"),"
+        
+        
         str_nar = str_nar[:-1]
         str_pos = str_pos[:-1]
+        
+        st_nertag_rememaining=st_nertag_rememaining[:-1]
+        st_postag_rememaining=st_postag_rememaining[:-1]
         
         str_nar_sug = str_nar_sug[:-1]
         str_pos_sug = str_pos_sug[:-1]
@@ -1036,7 +1080,10 @@ with gr.Blocks(css=css) as demo:
                 pos_sugg: gr.Label(value=list_of_str_pos_sug),
                 pos_tag:gr.Label(value=str_pos),
                 ner_tag: gr.Label(value=str_nar),
-                trans_google_text: gr.Label(value=tr_g)
+                trans_google_text: gr.Label(value=tr_g),
+                
+                ner_suggs_rem:gr.Label(value=st_nertag_rememaining),
+                pos_suggs_rem:gr.Label(value=st_postag_rememaining)
                 
         }
         
@@ -1194,7 +1241,7 @@ with gr.Blocks(css=css) as demo:
         
     
     ###################
-    suggest_btn.click(sugg,[],[ner_sugg,pos_sugg,pos_tag,ner_tag,trans_google_text])
+    suggest_btn.click(sugg,[],[ner_sugg,pos_sugg,pos_tag,ner_tag,trans_google_text,ner_suggs_rem,pos_suggs_rem])
 
 
 
