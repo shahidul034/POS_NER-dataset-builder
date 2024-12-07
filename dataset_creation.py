@@ -18,7 +18,10 @@ General_POS_TAG = {
     ',': 6,
     '।': 7,
     ':': 8,
-    '`': 9
+    '`': 9,
+    'কে':28,
+    '-': 8,
+    'ব্যবধানে': 21
 }
 
 
@@ -151,8 +154,28 @@ def already_completed_show(id):
         
         # Check if each field is a string; if so, use literal_eval to convert to a list
         tokens = ast.literal_eval(row_data['tokens']) if isinstance(row_data['tokens'], str) else row_data['tokens']
+        print("tokens::::::",tokens)
         pos_tags = ast.literal_eval(row_data['pos_tag']) if isinstance(row_data['pos_tag'], str) else row_data['pos_tag']
+        print("Pos tags::::::",pos_tags)
         ner_tags = ast.literal_eval(row_data['ner_tag']) if isinstance(row_data['ner_tag'], str) else row_data['ner_tag']
+        print("NER tags::::::",pos_tags)
+        
+        str_pos=""
+        for xx in pos_tags:
+            str_pos+=xx+","
+            
+        str_ner=""
+        for xx in ner_tags:
+            str_ner+=xx+","
+            
+        tran_text=""
+        for xx in tokens:
+            tran_text+=xx+" "
+            
+        str_ner = str_ner[:-1]
+        str_pos = str_pos[:-1]
+        tran_text = tran_text[:-1]
+        
         
         # Create an HTML table where each list element is a row in the table
         html_table = """
@@ -184,8 +207,16 @@ def already_completed_show(id):
         output_elements.append(gr.HTML(value=f"<div style='overflow-x:auto;'>{html_table}</div>", visible=True))
         output_elements.append(gr.Label(value=" ".join(tokens), visible=True, label="Sentence"))
         output_elements.append(gr.Label(value=id, visible=True, label="Question No."))
+        
+        ############
+        output_elements.append(gr.Label(value=str_pos))
+        output_elements.append(gr.Label(value=str_ner))
+        output_elements.append(gr.Label(value=tran_text))
     
     return output_elements
+
+                #pos_tag:gr.Label(value=str_pos),
+                #ner_tag: gr.Label(value=str_nar),
 
 
 
@@ -643,6 +674,14 @@ def save_data(id, tok_text, pos_tag, ner_tag):
     # Save the updated data back to the JSON file
     with open('data_storage.json', 'w') as file:
       json.dump(data_list, file, indent=4)
+      
+      
+      
+      
+    return{
+        Completed: gr.Label(value="Completed: "+str(len(json_data_df())),label="Total number of sentence completed")
+    }
+    
 
 
 
@@ -650,9 +689,11 @@ def save_data(id, tok_text, pos_tag, ner_tag):
 
 
 
-file_path = "data_storage.json"   
+file_path = "data_storage.json"
+
+def json_data_df():   
     # Load data from JSON file if it exists, otherwise initialize an empty DataFrame
-if os.path.exists(file_path):
+  if os.path.exists(file_path):
      with open(file_path, "r") as file:
         try:
             data_list = json.load(file)  # Load JSON data
@@ -664,8 +705,14 @@ if os.path.exists(file_path):
         except json.JSONDecodeError:
             print("Error: JSON file is corrupted or empty.")
             s_df = pd.DataFrame()  # Fallback to an empty DataFrame
-else:
+  else:
         s_df = pd.DataFrame()  # Empty DataFrame if file doesn't exist
+        
+  return s_df;
+        
+        
+        
+        
     
 
 
@@ -685,7 +732,7 @@ with gr.Blocks(css=css) as demo:
     with gr.Row():
         gr.Label(value="https://huggingface.co/datasets/conll2003",label="Dataset link")
         gr.Label(value="Total: "+str(len(dataset)),label="Total number of sentence in dataset")
-        gr.Label(value="Completed: "+str(len(s_df)),label="Total number of sentence completed")
+        Completed=gr.Label(value="Completed: "+str(len(json_data_df())),label="Total number of sentence completed")
   
   
   
@@ -737,7 +784,10 @@ with gr.Blocks(css=css) as demo:
     with gr.Row():
         pos_tag = gr.Textbox(label="Enter POS tag",info="sample of input: 22, 42, 16, 21, 35, 37, 16, 21, 7")
     
-    
+    with gr.Row():
+        #pos_sugg=gr.Label(label="POS Suggesion")
+        Previously_assigned_pos = gr.Textbox(label="Previously Assigned Pos", lines=2)
+        
     #with gr.Row():
         #ner_sugg=gr.Label(label="NER Suggesion")
         
@@ -901,7 +951,9 @@ with gr.Blocks(css=css) as demo:
     translation_options.change(translation_change,[translation_options,ques], [tran_text,show_text1])
     
     
-    show_btn.click(already_completed_show,[ques],[show_text1,show_text2,num_text])
+    
+    #######################################################
+    show_btn.click(already_completed_show,[ques],[show_text1,show_text2,num_text,Previously_assigned_pos,ner_tag,tran_text])
     
     
     
@@ -1083,7 +1135,8 @@ with gr.Blocks(css=css) as demo:
                 trans_google_text: gr.Label(value=tr_g),
                 
                 ner_suggs_rem:gr.Label(value=st_nertag_rememaining),
-                pos_suggs_rem:gr.Label(value=st_postag_rememaining)
+                pos_suggs_rem:gr.Label(value=st_postag_rememaining),
+                Previously_assigned_pos:gr.Label(value="")
                 
         }
         
@@ -1093,10 +1146,14 @@ with gr.Blocks(css=css) as demo:
     def sugg_2():
         
         # Read the Excel file
-        # file_path6 = 'token_data_map.xlsx'  # Replace with your file path
-        # df11 = pd.read_excel(file_path6, usecols="A:C")  # Read columns A and c
+        #file_path6 = 'token_data_map.xlsx'  # Replace with your file path
+        # Read the Excel file
+
         global df_Map
         df11 = df_Map  # Read columns A and c
+        
+        
+        
         
         len_b_xl=len(df11)
         for i in range(0,len_b_xl,1):
@@ -1143,19 +1200,15 @@ with gr.Blocks(css=css) as demo:
                #print("----------------------DF--------------------->",ban_df);
                #print("---------------------------Error in---------------------->",xx);
                
-               
-               
-               
-               
                treamed=bangla_stemmer.stem(xx)
                
                print(xx,"------------->Treamed---------to----->",treamed);
                
                #xx=treamed;
                
-               tk=translate_to_en(treamed)
+               #print(xx,"------------->Treamed---------to----->",treamed);
  
-               #tk=translate_to_en(xx)
+               tk=translate_to_en(treamed)
                #print("---------------------------Bangla Tran---------------------->",xx);
                #tk = tk.lower()
                
@@ -1171,37 +1224,53 @@ with gr.Blocks(css=css) as demo:
                print(xx,"trn-->",tk)
                
                
+               
+               
+               
                if xx in ban_tran_token_map_ner:
                    str_nar+=str(ban_tran_token_map_ner[xx])+","
                    str_pos+=str(ban_tran_token_map_pos[xx])+","
-                   #print("---------------------Tran---------------Map--->",xx)
+                   #eng_tkn_list.remove("asa")
                
                
                elif tk in ner_tkn:
                    str_nar+=str(ner_tkn[tk])+","
                    str_pos+=str(pos_tkn[tk])+","
                    
+                   #eng_tkn_list.remove(tk)
+                   print("---------Flag--------->",tk,"-------->",xx)
+                   
          
                    
                elif xx in ban_map_ner:
                    str_nar+=str(ban_map_ner[xx])+","
                    #str_pos+=str(ban_map_pos[xx])+","
-                   serial+=1
-                   str_pos+="#"+str(serial)+","
-                   str_pos_sug+=str(serial)+")"+xx+","
+                   #str_pos+="#,"
+                   
+                   if xx in General_POS_TAG:
+                      str_pos+=str(General_POS_TAG[xx])+",";
+                      
+                   else:
+                       
+                       serial+=1
+                       str_pos+="#"+str(serial)+","
+                       str_pos_sug+=str(serial)+")"+xx+","
+                       
+                      
                   
                 
                else:
                   
                  #if tk is not None and isinstance(tk, str): 
                   #for tkn in eng_tkn_list:
-                    #  if(tkn=="."):continue;
-                      #check,score=are_words_similar(tk, tkn)
-                     # print("Main--->",tk,"--->",tkn,"-->Score--->",score)
+                      #if(tkn=="."):continue;
+                     # check,score=are_words_similar(tk, tkn)
+                      #print("Main--->",tk,"--->",tkn,"-->Score--->",score)
                       
                  ####################################################  
                  #str_nar+="#,"
                  #str_pos+="#,"
+                 
                  serial+=1
                  str_pos+="#"+str(serial)+","
                  str_nar+="#"+str(serial)+","
@@ -1214,25 +1283,40 @@ with gr.Blocks(css=css) as demo:
         print("Str  NAR--->",str_nar)
         print("Str  POS--->",str_pos)
         
+        
+        
+        st_nertag_rememaining=""
+        st_postag_rememaining=""
+        
+        for tk in eng_tkn_list:
+            st_nertag_rememaining+=tk+"("+str(ner_tkn[tk.lower()])+"),"
+            st_postag_rememaining+=tk+"("+str(pos_tkn[tk.lower()])+"),"
+        
+        
         str_nar = str_nar[:-1]
         str_pos = str_pos[:-1]
+        
+        st_nertag_rememaining=st_nertag_rememaining[:-1]
+        st_postag_rememaining=st_postag_rememaining[:-1]
         
         str_nar_sug = str_nar_sug[:-1]
         str_pos_sug = str_pos_sug[:-1]
         
-        
-        #list_of_str_nar_sug = str_nar_sug.split(",")
-        #list_of_str_pos_sug = str_pos_sug.split(",")
-        
         list_of_str_nar_sug = str_nar_sug
         list_of_str_pos_sug = str_pos_sug
+        
+        
         
         
         return {
                 ner_sugg: gr.Label(value=list_of_str_nar_sug),
                 pos_sugg: gr.Label(value=list_of_str_pos_sug),
                 pos_tag:gr.Label(value=str_pos),
-                ner_tag: gr.Label(value=str_nar),        
+                ner_tag: gr.Label(value=str_nar),
+                
+                ner_suggs_rem:gr.Label(value=st_nertag_rememaining),
+                pos_suggs_rem:gr.Label(value=st_postag_rememaining)
+                
         }
         
         
@@ -1241,7 +1325,7 @@ with gr.Blocks(css=css) as demo:
         
     
     ###################
-    suggest_btn.click(sugg,[],[ner_sugg,pos_sugg,pos_tag,ner_tag,trans_google_text,ner_suggs_rem,pos_suggs_rem])
+    suggest_btn.click(sugg,[],[ner_sugg,pos_sugg,pos_tag,ner_tag,trans_google_text,ner_suggs_rem,pos_suggs_rem,Previously_assigned_pos])
 
 
 
@@ -1249,7 +1333,7 @@ with gr.Blocks(css=css) as demo:
     tran_text.change(show_tok,tran_text,tok_text)
     
     
-    tok_text.change(sugg_2,[],[ner_sugg,pos_sugg,pos_tag,ner_tag])
+    tok_text.change(sugg_2,[],[ner_sugg,pos_sugg,pos_tag,ner_tag,ner_suggs_rem,pos_suggs_rem])
     
     
   
@@ -1266,7 +1350,7 @@ with gr.Blocks(css=css) as demo:
     
     
     # save.click(save_data,[num_text,tok_text,pos_tag,ner_tag],[lab,show_text1,show_text2])
-    save.click(save_data,[num_text,tok_text,pos_tag,ner_tag],None)
+    save.click(save_data,[num_text,tok_text,pos_tag,ner_tag],[Completed])
     
     
     
