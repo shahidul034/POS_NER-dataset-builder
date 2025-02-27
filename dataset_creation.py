@@ -216,7 +216,7 @@ def already_completed_show(id):
     return output_elements
 
                 #pos_tag:gr.Label(value=str_pos),
-                #ner_tag: gr.Label(value=str_nar),
+                #ner_tag: gr.Label(value=str_ner),
 
 
 
@@ -486,12 +486,6 @@ def pos_ner_show(tok_text,pos_tag,ner_tag):
         
         
     
-    #df['pos_tag'] = df['pos_tag'].apply(lambda x: f"{x}({get_pos_tag_description(x)})")
-    #df['ner_tag'] = df['ner_tag'].apply(lambda x: f"{x}({get_ner_tag_description(x)})")
-    
-    #df['pos_tag'] = df['pos_tag'].apply(lambda x: f"{get_pos_tag_description(x)}")
-    
-    
     #print("Check------------->",get_pos_tag_description(22))
     #print("Check------------->",get_pos_tag_description(23))
     
@@ -732,6 +726,7 @@ with gr.Blocks(css=css) as demo:
     with gr.Row():
         gr.Label(value="https://huggingface.co/datasets/conll2003",label="Dataset link")
         gr.Label(value="Total: "+str(len(dataset)),label="Total number of sentence in dataset")
+        #Completed=gr.Label(value="Completed: "+str(len(json_data_df())),label="Total number of sentence completed")
         Completed=gr.Label(value="Completed: "+str(len(json_data_df())),label="Total number of sentence completed")
   
   
@@ -808,6 +803,8 @@ with gr.Blocks(css=css) as demo:
     with gr.Row():
         check = gr.Button("Check")
         save = gr.Button("Save the data")
+        Put_Zeros_btn= gr.Button("Assign Ner Zeros")
+        
     with gr.Row():
         lab=gr.Label(visible=False)
         ########################################################################
@@ -960,13 +957,16 @@ with gr.Blocks(css=css) as demo:
     
     
     
-    
+ 
+    global str_ner_array
     
     def sugg():
         
         # Read the Excel file
         #file_path6 = 'token_data_map.xlsx'  # Replace with your file path
         # Read the Excel file
+        
+       
 
         global df_Map
         df11 = df_Map  # Read columns A and c
@@ -1005,10 +1005,10 @@ with gr.Blocks(css=css) as demo:
             ban_tran_token_map_pos[tr_bn_token]=eng_pos_tkn_list[i]
             
         
-        str_nar=""
+        str_ner=""
         str_pos=""
         
-        str_nar_sug=""
+        str_ner_sug=""
         str_pos_sug=""
         
         serial=0
@@ -1047,13 +1047,13 @@ with gr.Blocks(css=css) as demo:
                
                
                if xx in ban_tran_token_map_ner:
-                   str_nar+=str(ban_tran_token_map_ner[xx])+","
+                   str_ner+=str(ban_tran_token_map_ner[xx])+","
                    str_pos+=str(ban_tran_token_map_pos[xx])+","
                    #eng_tkn_list.remove("asa")
                
                
                elif tk in ner_tkn:
-                   str_nar+=str(ner_tkn[tk])+","
+                   str_ner+=str(ner_tkn[tk])+","
                    str_pos+=str(pos_tkn[tk])+","
                    
                    #eng_tkn_list.remove(tk)
@@ -1062,7 +1062,7 @@ with gr.Blocks(css=css) as demo:
          
                    
                elif xx in ban_map_ner:
-                   str_nar+=str(ban_map_ner[xx])+","
+                   str_ner+=str(ban_map_ner[xx])+","
                    #str_pos+=str(ban_map_pos[xx])+","
                    #str_pos+="#,"
                    
@@ -1079,27 +1079,17 @@ with gr.Blocks(css=css) as demo:
                   
                 
                else:
-                  
-                 #if tk is not None and isinstance(tk, str): 
-                  #for tkn in eng_tkn_list:
-                      #if(tkn=="."):continue;
-                     # check,score=are_words_similar(tk, tkn)
-                      #print("Main--->",tk,"--->",tkn,"-->Score--->",score)
-                      
-                 ####################################################  
-                 #str_nar+="#,"
-                 #str_pos+="#,"
                  
                  serial+=1
                  str_pos+="#"+str(serial)+","
-                 str_nar+="#"+str(serial)+","
+                 str_ner+="#"+str(serial)+","
                  
-                 str_nar_sug+=str(serial)+")"+xx+","
+                 str_ner_sug+=str(serial)+")"+xx+","
                  str_pos_sug+=str(serial)+")"+xx+","
                  
                  
                
-        print("Str  NAR--->",str_nar)
+        print("Str  NAR--->",str_ner)
         print("Str  POS--->",str_pos)
         
         
@@ -1112,26 +1102,29 @@ with gr.Blocks(css=css) as demo:
             st_postag_rememaining+=tk+"("+str(pos_tkn[tk.lower()])+"),"
         
         
-        str_nar = str_nar[:-1]
+        str_ner = str_ner[:-1]
         str_pos = str_pos[:-1]
+        
+        global str_ner_array
+        str_ner_array=str_ner;
         
         st_nertag_rememaining=st_nertag_rememaining[:-1]
         st_postag_rememaining=st_postag_rememaining[:-1]
         
-        str_nar_sug = str_nar_sug[:-1]
+        str_ner_sug = str_ner_sug[:-1]
         str_pos_sug = str_pos_sug[:-1]
         
-        list_of_str_nar_sug = str_nar_sug
+        list_of_str_ner_sug = str_ner_sug
         list_of_str_pos_sug = str_pos_sug
         
         
         tr_g=translate_to_ban(english_sentence)
         
         return {
-                ner_sugg: gr.Label(value=list_of_str_nar_sug),
+                ner_sugg: gr.Label(value=list_of_str_ner_sug),
                 pos_sugg: gr.Label(value=list_of_str_pos_sug),
                 pos_tag:gr.Label(value=str_pos),
-                ner_tag: gr.Label(value=str_nar),
+                ner_tag: gr.Label(value=str_ner),
                 trans_google_text: gr.Label(value=tr_g),
                 
                 ner_suggs_rem:gr.Label(value=st_nertag_rememaining),
@@ -1148,6 +1141,8 @@ with gr.Blocks(css=css) as demo:
         # Read the Excel file
         #file_path6 = 'token_data_map.xlsx'  # Replace with your file path
         # Read the Excel file
+        
+        #global str_ner;
 
         global df_Map
         df11 = df_Map  # Read columns A and c
@@ -1186,10 +1181,10 @@ with gr.Blocks(css=css) as demo:
             ban_tran_token_map_pos[tr_bn_token]=eng_pos_tkn_list[i]
             
         
-        str_nar=""
+        str_ner=""
         str_pos=""
         
-        str_nar_sug=""
+        str_ner_sug=""
         str_pos_sug=""
         
         serial=0
@@ -1228,13 +1223,13 @@ with gr.Blocks(css=css) as demo:
                
                
                if xx in ban_tran_token_map_ner:
-                   str_nar+=str(ban_tran_token_map_ner[xx])+","
+                   str_ner+=str(ban_tran_token_map_ner[xx])+","
                    str_pos+=str(ban_tran_token_map_pos[xx])+","
                    #eng_tkn_list.remove("asa")
                
                
                elif tk in ner_tkn:
-                   str_nar+=str(ner_tkn[tk])+","
+                   str_ner+=str(ner_tkn[tk])+","
                    str_pos+=str(pos_tkn[tk])+","
                    
                    #eng_tkn_list.remove(tk)
@@ -1243,7 +1238,7 @@ with gr.Blocks(css=css) as demo:
          
                    
                elif xx in ban_map_ner:
-                   str_nar+=str(ban_map_ner[xx])+","
+                   str_ner+=str(ban_map_ner[xx])+","
                    #str_pos+=str(ban_map_pos[xx])+","
                    #str_pos+="#,"
                    
@@ -1268,19 +1263,19 @@ with gr.Blocks(css=css) as demo:
                       #print("Main--->",tk,"--->",tkn,"-->Score--->",score)
                       
                  ####################################################  
-                 #str_nar+="#,"
+                 #str_ner+="#,"
                  #str_pos+="#,"
                  
                  serial+=1
                  str_pos+="#"+str(serial)+","
-                 str_nar+="#"+str(serial)+","
+                 str_ner+="#"+str(serial)+","
                  
-                 str_nar_sug+=str(serial)+")"+xx+","
+                 str_ner_sug+=str(serial)+")"+xx+","
                  str_pos_sug+=str(serial)+")"+xx+","
                  
                  
                
-        print("Str  NAR--->",str_nar)
+        print("Str  NAR--->",str_ner)
         print("Str  POS--->",str_pos)
         
         
@@ -1293,33 +1288,73 @@ with gr.Blocks(css=css) as demo:
             st_postag_rememaining+=tk+"("+str(pos_tkn[tk.lower()])+"),"
         
         
-        str_nar = str_nar[:-1]
+        str_ner = str_ner[:-1]
         str_pos = str_pos[:-1]
+        
+        
+        global str_ner_array
+        str_ner_array=str_ner;
         
         st_nertag_rememaining=st_nertag_rememaining[:-1]
         st_postag_rememaining=st_postag_rememaining[:-1]
         
-        str_nar_sug = str_nar_sug[:-1]
+        str_ner_sug = str_ner_sug[:-1]
         str_pos_sug = str_pos_sug[:-1]
         
-        list_of_str_nar_sug = str_nar_sug
+        list_of_str_ner_sug = str_ner_sug
         list_of_str_pos_sug = str_pos_sug
         
         
         
         
         return {
-                ner_sugg: gr.Label(value=list_of_str_nar_sug),
+                ner_sugg: gr.Label(value=list_of_str_ner_sug),
                 pos_sugg: gr.Label(value=list_of_str_pos_sug),
+                
                 pos_tag:gr.Label(value=str_pos),
-                ner_tag: gr.Label(value=str_nar),
+                ner_tag: gr.Label(value=str_ner),
                 
                 ner_suggs_rem:gr.Label(value=st_nertag_rememaining),
                 pos_suggs_rem:gr.Label(value=st_postag_rememaining)
                 
         }
         
+   
+   
+   
+   
+   
+   
+   
+    def Put_Zeros():
         
+        global str_ner_array;
+        
+        str_ner=str_ner_array;
+        
+        ner_tags=str_ner.split(",")
+        
+        
+        new_str=""
+        
+        for i in range(0,len(ner_tags),1):
+            if ner_tags[i].startswith("#"):
+                   #ner_tags[i] = "0"
+                   new_str+="0,"
+            else:
+                new_str+=ner_tags[i]+",";
+                
+        new_str = new_str[:-1]
+        str_ner=new_str
+       
+        
+        return {
+              
+                ner_tag: gr.Label(value=str_ner)
+                
+                        
+        }
+            
         
     
         
@@ -1328,6 +1363,7 @@ with gr.Blocks(css=css) as demo:
     suggest_btn.click(sugg,[],[ner_sugg,pos_sugg,pos_tag,ner_tag,trans_google_text,ner_suggs_rem,pos_suggs_rem,Previously_assigned_pos])
 
 
+    Put_Zeros_btn.click(Put_Zeros,[],[ner_tag])
 
 
     tran_text.change(show_tok,tran_text,tok_text)
