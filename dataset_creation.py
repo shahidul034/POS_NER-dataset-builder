@@ -1354,6 +1354,13 @@ with gr.Blocks(css=css) as demo:
                 
                         
         }
+        
+        
+        
+    def Dynamically_update_NER(ner_tag):
+        
+        global str_ner_array; 
+        str_ner_array=ner_tag;
             
         
     
@@ -1375,6 +1382,8 @@ with gr.Blocks(css=css) as demo:
   
     
     #print("noW---111>",show_tok,tran_text,tok_text)
+    
+    ner_tag.change(Dynamically_update_NER,ner_tag,[])
     
 
     
